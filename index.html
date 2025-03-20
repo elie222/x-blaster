@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitter Blaster</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <div id="game-ui">
+            <div id="score-display">Score: <span id="score">0</span></div>
+            <div id="lives-display">Lives: <span id="lives">3</span></div>
+            <div id="level-display">Level: <span id="level">1</span></div>
+        </div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div id="start-screen" class="overlay">
+            <h1>Twitter Blaster</h1>
+            <p>Shoot AI-generated spam tweets while letting real tweets pass safely!</p>
+            <ul>
+                <li>Move: Left/Right Arrow Keys</li>
+                <li>Shoot: Spacebar</li>
+                <li>+100 points for shooting spam tweets</li>
+                <li>-150 points for shooting real tweets</li>
+                <li>+25 points when real tweets pass safely</li>
+                <li>-50 points when spam reaches the bottom</li>
+            </ul>
+            <button id="start-button">Start Game</button>
+        </div>
+        
+        <div id="game-over-screen" class="overlay hidden">
+            <h1>Game Over</h1>
+            <p>Your final score: <span id="final-score">0</span></p>
+            <button id="restart-button">Play Again</button>
+        </div>
+    </div>
+    
+    <script src="sounds.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
