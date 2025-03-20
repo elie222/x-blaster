@@ -44,16 +44,6 @@ let soundManager;
 
 // Sample tweet content
 const realTweets = [
-    { username: "@nature_lover", text: "Just saw the most beautiful sunset at the beach today! 🌅" },
-    { username: "@coffee_addict", text: "Nothing beats a fresh cup of coffee on a Monday morning ☕" },
-    { username: "@book_worm", text: "Just finished reading that new novel everyone's talking about. Highly recommend!" },
-    { username: "@food_explorer", text: "Made homemade pasta for the first time today. It was actually easier than I thought!" },
-    { username: "@tech_enthusiast", text: "The new software update fixed all the bugs I was experiencing. So much smoother now!" },
-    { username: "@movie_buff", text: "Just watched that new superhero movie. The special effects were amazing!" },
-    { username: "@fitness_junkie", text: "Completed my first 10k run today! Feeling proud and exhausted." },
-    { username: "@pet_parent", text: "My cat just knocked over my plant for the third time this week. Still love her though!" },
-    { username: "@music_fan", text: "That new album just dropped and I can't stop listening to it on repeat!" },
-    { username: "@travel_bug", text: "Planning my next vacation to Japan. Any recommendations for Tokyo?" },
     { username: "@sandislonjsak", text: "You killed it, anyone who claims otherwise is lying" },
     { username: "@IronBrands16", text: "fack me thats insane haha" },
     { username: "@Dannybooboo0", text: "to be fair my tweets are 💥 for years and i still get zero likes and 25 views on X while other platforms sometimes millions" },
