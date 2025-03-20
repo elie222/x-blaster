@@ -1,4 +1,4 @@
-# Twitter Blaster Game
+# X Blaster Game
 
 A fun arcade-style game where you shoot down AI-generated spam tweets while allowing real tweets to pass safely.
 
