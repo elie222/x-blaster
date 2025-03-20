@@ -18,7 +18,7 @@ body {
 .game-container {
     position: relative;
     width: 800px;
-    height: 600px;
+    height: 700px; /* Match the new canvas height */
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
@@ -29,7 +29,7 @@ body {
 
 #game-ui {
     position: absolute;
-    top: 10px;
+    top: 5px; /* Reduced from 10px */
     left: 10px;
     z-index: 10;
     display: flex;

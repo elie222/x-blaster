@@ -1,6 +1,6 @@
 // Game constants
 const CANVAS_WIDTH = 800;
-const CANVAS_HEIGHT = 600;
+const CANVAS_HEIGHT = 700; // Increased height for more reading time
 const PLAYER_WIDTH = 60;
 const PLAYER_HEIGHT = 40;
 const PLAYER_SPEED = 7;
@@ -9,8 +9,8 @@ const BULLET_HEIGHT = 15;
 const BULLET_SPEED = 10;
 const TWEET_WIDTH = 300;
 const TWEET_HEIGHT = 100;
-const TWEET_MIN_SPEED = 1;
-const TWEET_MAX_SPEED = 4;
+const TWEET_MIN_SPEED = 0.8; // Slightly slower minimum speed
+const TWEET_MAX_SPEED = 2.5; // Much slower maximum speed for better readability
 const TWEET_SPAWN_RATE = 1500; // milliseconds
 const REAL_TWEET_PROBABILITY = 0.6; // 60% chance of real tweet
 
@@ -75,7 +75,7 @@ class Player {
         this.width = PLAYER_WIDTH;
         this.height = PLAYER_HEIGHT;
         this.x = (CANVAS_WIDTH - this.width) / 2;
-        this.y = CANVAS_HEIGHT - this.height - 20;
+        this.y = CANVAS_HEIGHT - this.height - 30; // Position player a bit higher
         this.speed = PLAYER_SPEED;
         this.movingLeft = false;
         this.movingRight = false;
@@ -128,15 +128,36 @@ class Bullet {
         this.x = x;
         this.y = y;
         this.speed = BULLET_SPEED;
+        this.trail = []; // Store previous positions for trail effect
+        this.maxTrailLength = 5; // Maximum number of trail segments
     }
 
     update() {
+        // Store current position for trail effect
+        this.trail.push({x: this.x, y: this.y});
+        if (this.trail.length > this.maxTrailLength) {
+            this.trail.shift(); // Remove oldest position if we exceed max length
+        }
+        
+        // Move bullet
         this.y -= this.speed;
     }
 
     draw() {
-        ctx.fillStyle = '#ffffff';
+        // Draw trail with gradient opacity
+        for (let i = 0; i < this.trail.length; i++) {
+            const pos = this.trail[i];
+            const alpha = i / this.trail.length; // Fade out older trail segments
+            ctx.fillStyle = `rgba(100, 200, 255, ${alpha * 0.7})`; // Blue trail with alpha
+            ctx.fillRect(pos.x, pos.y, this.width, this.height * 0.8);
+        }
+        
+        // Draw main bullet with glow effect
+        ctx.fillStyle = '#00aaff'; // Bright blue for the bullet
+        ctx.shadowColor = '#00aaff';
+        ctx.shadowBlur = 10;
         ctx.fillRect(this.x, this.y, this.width, this.height);
+        ctx.shadowBlur = 0; // Reset shadow
     }
 
     isOffScreen() {
@@ -150,7 +171,7 @@ class Tweet {
         this.width = TWEET_WIDTH;
         this.height = TWEET_HEIGHT;
         this.x = Math.random() * (CANVAS_WIDTH - this.width);
-        this.y = -1 * this.height;
+        this.y = -1.5 * this.height; // Start tweets higher above the screen
         this.speed = TWEET_MIN_SPEED + Math.random() * (TWEET_MAX_SPEED - TWEET_MIN_SPEED);
         this.isReal = isReal;
         
@@ -173,7 +194,7 @@ class Tweet {
         roundRect(ctx, this.x, this.y, this.width, this.height, 10, true, true);
 
         // Draw profile image
-        ctx.fillStyle = '#' + Math.floor(Math.random() * 16777215).toString(16); // Random color for all profiles
+        ctx.fillStyle = `#${Math.floor(Math.random() * 16777215).toString(16)}`; // Random color for all profiles
         ctx.beginPath();
         ctx.arc(this.x + 30, this.y + 30, 20, 0, Math.PI * 2);
         ctx.fill();
@@ -194,13 +215,14 @@ class Tweet {
 
 // Explosion effect
 class Explosion {
-    constructor(x, y, color) {
+    constructor(x, y, color, maxRadius) {
         this.x = x;
         this.y = y;
         this.radius = 5;
-        this.maxRadius = 40;
-        this.expandSpeed = 2;
-        this.color = color || '#ff0000';
+        // Use default parameter value instead of reassigning
+        this.maxRadius = maxRadius ?? 40;
+        this.expandSpeed = 2.5;
+        this.color = color ?? '#ff0000';
         this.alpha = 1;
     }
 
@@ -489,12 +511,36 @@ function checkCollisions() {
                 if (tweet.isReal) {
                     // Hit a real tweet (bad)
                     score -= 150;
-                    explosions.push(new Explosion(tweet.x + (tweet.width / 2), tweet.y + (tweet.height / 2), '#ff0000'));
+                    // Create multiple red explosions for wrong hit
+                    explosions.push(new Explosion(tweet.x + (tweet.width / 2), tweet.y + (tweet.height / 2), '#ff0000', 60)); // Larger explosion
+                    // Add some smaller explosions around it
+                    for (let k = 0; k < 3; k++) {
+                        const offsetX = (Math.random() - 0.5) * 40;
+                        const offsetY = (Math.random() - 0.5) * 40;
+                        explosions.push(new Explosion(
+                            tweet.x + (tweet.width / 2) + offsetX,
+                            tweet.y + (tweet.height / 2) + offsetY,
+                            '#ff3333', // Slightly different red
+                            30 // Smaller radius
+                        ));
+                    }
                     playSound('badHit');
                 } else {
                     // Hit a spam tweet (good)
                     score += 100;
-                    explosions.push(new Explosion(tweet.x + (tweet.width / 2), tweet.y + (tweet.height / 2), '#00ff00'));
+                    // Create multiple green explosions for correct hit
+                    explosions.push(new Explosion(tweet.x + (tweet.width / 2), tweet.y + (tweet.height / 2), '#00ff00', 50)); // Main explosion
+                    // Add some smaller explosions around it
+                    for (let k = 0; k < 3; k++) {
+                        const offsetX = (Math.random() - 0.5) * 40;
+                        const offsetY = (Math.random() - 0.5) * 40;
+                        explosions.push(new Explosion(
+                            tweet.x + (tweet.width / 2) + offsetX,
+                            tweet.y + (tweet.height / 2) + offsetY,
+                            '#33ff33', // Slightly different green
+                            25 // Smaller radius
+                        ));
+                    }
                     playSound('goodHit');
                 }
 
