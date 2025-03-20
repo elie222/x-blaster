@@ -7,8 +7,8 @@ const PLAYER_SPEED = 7;
 const BULLET_WIDTH = 5;
 const BULLET_HEIGHT = 15;
 const BULLET_SPEED = 10;
-const TWEET_WIDTH = 300;
-const TWEET_HEIGHT = 100;
+const TWEET_WIDTH = 300; // Width for tweets
+const TWEET_MIN_HEIGHT = 100; // Base height for tweets
 const TWEET_MIN_SPEED = 0.8; // Slightly slower minimum speed
 const TWEET_MAX_SPEED = 2.5; // Much slower maximum speed for better readability
 const TWEET_SPAWN_RATE = 1500; // milliseconds
@@ -208,21 +208,64 @@ class Bullet {
     }
 }
 
+// Helper function to estimate the number of lines needed for text
+function estimateTextLines(text, ctx, maxWidth) {
+    const words = text.split(' ');
+    let line = '';
+    let lineCount = 1; // Start with at least one line
+    
+    for (let n = 0; n < words.length; n++) {
+        const testLine = `${line}${words[n]} `;
+        const metrics = ctx.measureText(testLine);
+        const testWidth = metrics.width;
+        
+        if (testWidth > maxWidth && n > 0) {
+            line = `${words[n]} `;
+            lineCount++;
+        } else {
+            line = testLine;
+        }
+    }
+    
+    return lineCount;
+}
+
+// Helper function to calculate tweet height based on text content
+function calculateTweetHeight(text) {
+    // Create a temporary canvas context to measure text
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCtx.font = '14px Arial';
+    
+    // Calculate how many lines this text will need
+    const availableTextWidth = TWEET_WIDTH - 80; // Account for padding and profile pic
+    const estimatedLines = estimateTextLines(text, tempCtx, availableTextWidth);
+    
+    // Base height (profile pic + padding) + text height (lines * line height + minimal padding)
+    const calculatedHeight = 70 + (estimatedLines * 18) + 5;
+    
+    // Ensure minimum height
+    return Math.max(calculatedHeight, TWEET_MIN_HEIGHT);
+}
+
 // Tweet object
 class Tweet {
     constructor(isReal) {
         this.width = TWEET_WIDTH;
-        this.height = TWEET_HEIGHT;
-        this.x = Math.random() * (CANVAS_WIDTH - this.width);
-        this.y = -1.5 * this.height; // Start tweets higher above the screen
-        this.speed = TWEET_MIN_SPEED + Math.random() * (TWEET_MAX_SPEED - TWEET_MIN_SPEED);
-        this.isReal = isReal;
         
         // Select tweet content
         const tweetSource = isReal ? realTweets : spamTweets;
         const tweetData = tweetSource[Math.floor(Math.random() * tweetSource.length)];
         this.username = tweetData.username;
         this.text = tweetData.text;
+        
+        // Set height based on text length
+        this.height = calculateTweetHeight(this.text);
+        
+        this.x = Math.random() * (CANVAS_WIDTH - this.width);
+        this.y = -1.5 * this.height; // Start tweets higher above the screen
+        this.speed = TWEET_MIN_SPEED + Math.random() * (TWEET_MAX_SPEED - TWEET_MIN_SPEED);
+        this.isReal = isReal;
     }
 
     update() {
@@ -239,16 +282,19 @@ class Tweet {
         // Draw profile image
         ctx.fillStyle = `#${Math.floor(Math.random() * 16777215).toString(16)}`; // Random color for all profiles
         ctx.beginPath();
-        ctx.arc(this.x + 30, this.y + 30, 20, 0, Math.PI * 2);
+        ctx.arc(this.x + 35, this.y + 35, 25, 0, Math.PI * 2); // Slightly larger profile image
         ctx.fill();
 
         // Draw username and text
         ctx.fillStyle = '#000000';
-        ctx.font = 'bold 16px Arial'; // Increased font size for username
-        ctx.fillText(this.username, this.x + 60, this.y + 30);
+        ctx.font = 'bold 16px Arial';
+        ctx.fillText(this.username, this.x + 70, this.y + 35); // Adjusted position
         
-        ctx.font = '14px Arial'; // Increased font size for tweet text
-        wrapText(ctx, this.text, this.x + 60, this.y + 50, this.width - 70, 18);
+        ctx.font = '14px Arial';
+        // Calculate available height for text (total height minus space for username and padding)
+        const availableHeight = this.height - 70; // 70px for username area and padding
+        // Pass available height to wrapText for dynamic line count
+        wrapText(ctx, this.text, this.x + 70, this.y + 60, this.width - 80, 18, availableHeight);
     }
 
     isOffScreen() {
@@ -313,11 +359,14 @@ function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
 }
 
 // Helper function to wrap text
-function wrapText(ctx, text, xPos, yPos, maxWidth, lineHeight) {
+function wrapText(ctx, text, xPos, yPos, maxWidth, lineHeight, maxHeight) {
     const words = text.split(' ');
     let line = '';
     let testLine = '';
     let lineCount = 0;
+    
+    // Calculate max lines based on available height if provided
+    const maxLines = maxHeight ? Math.floor(maxHeight / lineHeight) : 15; // Increased max lines to 15
     
     // Use local variables instead of modifying parameters
     const currentX = xPos;
@@ -333,7 +382,7 @@ function wrapText(ctx, text, xPos, yPos, maxWidth, lineHeight) {
             line = nextWord;
             currentY += lineHeight;
             lineCount++;
-            if (lineCount >= 3) return; // Limit to 3 lines
+            // No truncation - we'll just make sure the tweet height is sufficient
         } else {
             line = testLine;
         }
